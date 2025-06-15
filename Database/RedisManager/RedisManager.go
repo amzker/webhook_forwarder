@@ -2,11 +2,8 @@ package RedisManager
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"strconv"
 	"webhook/Config"
 
@@ -33,14 +30,7 @@ func GetRedisClient() *redis.Client {
 	return RedisClient
 }
 
-type RedisPublishMessage struct {
-	Method  string              `json:"method"`
-	URL     string              `json:"url"`
-	Headers map[string][]string `json:"headers"`
-	Body    string              `json:"body,omitempty"`
-}
-
-func PushtoPubsubChannel(channel string, request *http.Request) bool {
+func PushtoPubsubChannel(channel string, message []byte) bool {
 	log.Printf("Got Requests to push to %s", channel)
 	ctx := context.Background()
 	rerr := RedisClient.Ping(ctx).Err()
@@ -49,23 +39,7 @@ func PushtoPubsubChannel(channel string, request *http.Request) bool {
 		return false
 	}
 
-	bodybytes, berr := io.ReadAll(request.Body)
-	if berr != nil {
-		log.Printf("Failed to read body,%s", berr)
-	}
-	messageObj := RedisPublishMessage{
-		Method:  request.Method,
-		URL:     request.RequestURI,
-		Headers: request.Header,
-		Body:    string(bodybytes),
-	}
-	request.Body.Close()
-	jsonObj, jerr := json.Marshal(messageObj)
-	if jerr != nil {
-		log.Printf("json object was not able to be created %s", jerr)
-	}
-
-	perr := RedisClient.Publish(ctx, channel, jsonObj).Err()
+	perr := RedisClient.Publish(ctx, channel, message).Err()
 	if perr != nil {
 		log.Printf("Error during Publishing to redis %s", perr)
 		return false

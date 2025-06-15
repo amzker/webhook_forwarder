@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/webhook/{webhook_path}", Webhooks.Webhook_forwarder)
-	http.HandleFunc("/event_pool/{channel}", EventSourcePool.EventStreamProvider)
+	http.HandleFunc("/webhook/{channel}", Webhooks.Webhook_forwarder)
+	http.HandleFunc("/events/{channel}", EventSourcePool.EventStreamProvider)
 
 	log.Println("Server listening on :8080")
 	err := http.ListenAndServe(":8080", nil)

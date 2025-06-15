@@ -11,16 +11,23 @@ import (
 )
 
 func EventStreamProvider(writer http.ResponseWriter, request *http.Request) {
-	log.Print("Event Steam Request arrived")
 	channel_to_listen := request.PathValue("channel")
+	log.Printf("Channel to listen: %s", channel_to_listen)
 	if uuid.Validate(channel_to_listen) != nil {
 		log.Printf("Invalid UUID %s", channel_to_listen)
+		http.Error(writer, "Invalid UUID", http.StatusBadRequest) // in stream? , i will need to look into it.
 		return
 	}
-	writer.Header().Set("Content-Type", "text/event-stream")
-	writer.Header().Set("Cache-Control", "no-cache")
-	writer.Header().Set("Connection", "keep-alive")
-	writer.Header().Set("Access-Control-Allow-Origin", "*")
+
+	headers := map[string]string{
+		"Content-Type":                "text/event-stream",
+		"Cache-Control":               "no-cache",
+		"Connection":                  "keep-alive",
+		"Access-Control-Allow-Origin": "*",
+	}
+	for key, value := range headers {
+		writer.Header().Set(key, value)
+	}
 
 	flusher, success := writer.(http.Flusher)
 	if !success {
@@ -39,12 +46,13 @@ func EventStreamProvider(writer http.ResponseWriter, request *http.Request) {
 	for {
 		select {
 		case msg := <-events_channel:
-			if msg != nil {
+			if msg != nil && msg.Payload != "" {
 				fmt.Fprintf(writer, "data: %s\n\n", msg.Payload)
 				flusher.Flush()
 			}
 		case <-time.After(time.Second * 30):
 			log.Printf("Close connection as 30 Secounds has been passed")
+			http.Error(writer, "Timeout: Close connection as 30 Secounds has been passed", http.StatusRequestTimeout)
 			return
 		case <-connection_close.Done():
 			log.Print("Client disconnected from stream")
