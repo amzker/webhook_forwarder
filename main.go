@@ -5,16 +5,7 @@ import (
 	"net/http"
 	"webhook/Routes/EventSourcePool"
 	"webhook/Routes/Webhooks"
-
-	"github.com/joho/godotenv"
 )
-
-func init() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Failed to load .env file")
-	}
-}
 
 func main() {
 	http.HandleFunc("/webhook/{webhook_path}", Webhooks.Webhook_forwarder)
