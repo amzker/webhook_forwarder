@@ -47,12 +47,12 @@ func EventStreamProvider(writer http.ResponseWriter, request *http.Request) {
 		select {
 		case msg := <-events_channel:
 			if msg != nil && msg.Payload != "" {
-				fmt.Fprintf(writer, "data: %s\n\n", msg.Payload)
+				fmt.Fprintf(writer, "_data_:%s\n\n", msg.Payload)
 				flusher.Flush()
 			}
-		case <-time.After(time.Second * 30):
-			log.Printf("Close connection as 30 Secounds has been passed")
-			http.Error(writer, "Timeout: Close connection as 30 Secounds has been passed", http.StatusRequestTimeout)
+		case <-time.After(time.Second * 600):
+			log.Printf("Close connection as 600 Secounds has been passed")
+			http.Error(writer, "Timeout: Close connection as 600 Secounds has been passed", http.StatusRequestTimeout)
 			return
 		case <-connection_close.Done():
 			log.Print("Client disconnected from stream")

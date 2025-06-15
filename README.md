@@ -9,9 +9,10 @@
 
 
 # Client Side:
-- client side cli is left
+- [webhook_forwarder_client](https://github.com/amzker/webhook_forwarder_client).
+ 
 - basic idea is that i connect to my server SSE and as soon as request comes i forward to local endpoint 
 Example:
 ```bash
-webhook_forwarder_cli --host my_server_host --uuid uuid --forward_url http://localhost:whatever/whaterver/webhook/
+./client -server_host <forwarder_host> -listen_token <uuid> -local_forward_url <your_local_webhook_url>
 ```
